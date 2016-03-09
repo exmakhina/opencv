@@ -3226,13 +3226,13 @@ void cv::resize( InputArray _src, OutputArray _dst, Size dsize,
 
     Size ssize = _src.size();
 
-    CV_Assert( ssize.area() > 0 );
-    CV_Assert( dsize.area() > 0 || (inv_scale_x > 0 && inv_scale_y > 0) );
-    if( dsize.area() == 0 )
+    CV_Assert( ssize.width > 0 && ssize.height > 0 );
+    CV_Assert( (dsize.width > 0 && dsize.height > 0) || (inv_scale_x > 0 && inv_scale_y > 0) );
+    if( dsize.width == 0 && dsize.height == 0 )
     {
         dsize = Size(saturate_cast<int>(ssize.width*inv_scale_x),
                      saturate_cast<int>(ssize.height*inv_scale_y));
-        CV_Assert( dsize.area() > 0 );
+        CV_Assert( dsize.width > 0 && dsize.height > 0 );
     }
     else
     {
@@ -3829,7 +3829,7 @@ static void remapBilinear( const Mat& _src, Mat& _dst, const Mat& _xy,
         cval[k] = saturate_cast<T>(_borderValue[k & 3]);
 
     unsigned width1 = std::max(ssize.width-1, 0), height1 = std::max(ssize.height-1, 0);
-    CV_Assert( ssize.area() > 0 );
+    CV_Assert(ssize.width > 0 && ssize.height > 0 );
 #if CV_SSE2
     if( _src.type() == CV_8UC3 )
         width1 = std::max(ssize.width-2, 0);
@@ -4669,7 +4669,7 @@ void cv::remap( InputArray _src, OutputArray _dst,
         remapLanczos4<Cast<double, double>, float, 1>, 0
     };
 
-    CV_Assert( _map1.size().area() > 0 );
+    CV_Assert( _map1.size().width > 0 && _map1.size().height > 0 );
     CV_Assert( _map2.empty() || (_map2.size() == _map1.size()));
 
     CV_OCL_RUN(_src.dims() <= 2 && _dst.isUMat(),
@@ -5530,7 +5530,7 @@ static bool ocl_warpTransform(InputArray _src, OutputArray _dst, InputArray _M0,
     scalarToRawData(borderValue, borderBuf, sctype);
 
     UMat src = _src.getUMat(), M0;
-    _dst.create( dsize.area() == 0 ? src.size() : dsize, src.type() );
+    _dst.create( (dsize.width == 0 && dsize.height == 0) ? src.size() : dsize, src.type() );
     UMat dst = _dst.getUMat();
 
     double M[9];
@@ -5579,7 +5579,7 @@ void cv::warpAffine( InputArray _src, OutputArray _dst,
                                  borderValue, OCL_OP_AFFINE))
 
     Mat src = _src.getMat(), M0 = _M0.getMat();
-    _dst.create( dsize.area() == 0 ? src.size() : dsize, src.type() );
+    _dst.create( (dsize.width == 0 && dsize.height == 0) ? src.size() : dsize, src.type() );
     Mat dst = _dst.getMat();
     CV_Assert( src.cols > 0 && src.rows > 0 );
     if( dst.data == src.data )
@@ -6105,7 +6105,7 @@ void cv::warpPerspective( InputArray _src, OutputArray _dst, InputArray _M0,
                               OCL_OP_PERSPECTIVE))
 
     Mat src = _src.getMat(), M0 = _M0.getMat();
-    _dst.create( dsize.area() == 0 ? src.size() : dsize, src.type() );
+    _dst.create( (dsize.width == 0 && dsize.height == 0) ? src.size() : dsize, src.type() );
     Mat dst = _dst.getMat();
 
     if( dst.data == src.data )
